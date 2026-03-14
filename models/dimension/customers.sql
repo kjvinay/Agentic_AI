@@ -2,11 +2,14 @@ with final AS (
     SELECT
         id,
         email,
-        created_at
+        created_at,
+        -- [SCRUM-13] Added by schema-change agent
+        COUNT(*) OVER () AS CUSTOMERCOUNT
     FROM customersource
 )
     SELECT
         id,
         email,
-        created_at
+        created_at,
+        CUSTOMERCOUNT
     FROM final
