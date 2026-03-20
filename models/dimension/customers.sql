@@ -1,12 +1,23 @@
 with final AS (
     SELECT
-        id,
-        email,
-        created_at
-    FROM customersource
+        customer_id,
+        customername,
+        cusomeremail,
+        customercountry,
+        customerstate,
+        customercity,
+        '1900-01-01' as created_at,
+        -- [SCRUM-13] Added by schema-change agent
+        COUNT(*) OVER () AS CUSTOMERCOUNT
+    FROM src_customers
 )
     SELECT
-        id,
-        email,
-        created_at
+        customer_id,
+        customername,
+        cusomeremail,
+        customercountry,
+        customerstate,
+        customercity,
+        created_at,
+        COUNT(*) OVER () AS CUSTOMERCOUNT
     FROM final
