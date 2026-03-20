@@ -7,7 +7,6 @@ with final AS (
         customerstate,
         customercity,
         '1900-01-01' as created_at,
-        -- [SCRUM-13] Added by schema-change agent
         COUNT(*) OVER () AS CUSTOMERCOUNT
     FROM src_customers
 )
