@@ -28,7 +28,15 @@ renamed AS (
         ANNUAL_REVENUE,
         CREATED_AT                              AS effective_date,
         '9999-12-31'::DATE                      AS expiry_date,
-        IS_ACTIVE                               AS is_current
+        IS_ACTIVE                               AS is_current,
+
+        -- [SCRUM-31] COMPUTED: Added by schema-change agent
+        CASE 
+        WHEN ANNUAL_REVENUE < 1000000 THEN 'Bronze'
+        WHEN ANNUAL_REVENUE >= 1000000 AND ANNUAL_REVENUE <= 10000000 THEN 'Silver'
+        WHEN ANNUAL_REVENUE > 10000000 THEN 'Gold'
+        ELSE NULL
+    END AS CUSTOMER_TIER
 
     FROM source
 
@@ -53,6 +61,7 @@ segmented AS (
         effective_date,
         expiry_date,
         is_current,
+        customer_tier,
 
         CASE
             WHEN customer_count < 250               THEN 'Small'
@@ -87,6 +96,7 @@ final AS (
         segment,
         customer_status,
         annual_revenue,
+        customer_tier,
         effective_date,
         expiry_date,
         is_current
