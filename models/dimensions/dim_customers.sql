@@ -10,6 +10,17 @@ WITH source AS (
 
 ),
 
+orders_source AS (
+
+    SELECT 
+        CUSTOMER_ID,
+        -- [SCRUM-32] AGGREGATE: Added by schema-change agent
+        COUNT(src.ORDER_ID) AS total_orders
+    FROM {{ source('foundation', 'SRC_ORDERS') }} src
+    GROUP BY CUSTOMER_ID
+
+),
+
 renamed AS (
 
     SELECT
@@ -34,6 +45,17 @@ renamed AS (
 
 ),
 
+joined AS (
+
+    SELECT
+        r.*,
+        COALESCE(o.total_orders, 0) AS total_orders
+    FROM renamed r
+    LEFT JOIN orders_source o
+        ON r.customer_id = o.customer_id
+
+),
+
 segmented AS (
 
     SELECT
@@ -53,6 +75,7 @@ segmented AS (
         effective_date,
         expiry_date,
         is_current,
+        total_orders,
 
         CASE
             WHEN customer_count < 250               THEN 'Small'
@@ -65,7 +88,7 @@ segmented AS (
             ELSE                                     'Inactive'
         END                                     AS customer_status
 
-    FROM renamed
+    FROM joined
 
 ),
 
@@ -89,7 +112,8 @@ final AS (
         annual_revenue,
         effective_date,
         expiry_date,
-        is_current
+        is_current,
+        total_orders
 
     FROM segmented
 
