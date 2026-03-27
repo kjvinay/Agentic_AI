@@ -10,6 +10,17 @@ WITH source AS (
 
 ),
 
+orders AS (
+
+    SELECT
+        CUSTOMER_ID,
+        -- [SCRUM-37] AGGREGATE: Added by schema-change agent
+        COUNT(ORDER_ID) AS total_orders
+    FROM {{ source('foundation', 'SRC_ORDERS') }}
+    GROUP BY CUSTOMER_ID
+
+),
+
 renamed AS (
 
     SELECT
@@ -72,26 +83,28 @@ segmented AS (
 final AS (
 
     SELECT
-        customer_key,
-        customer_id,
-        customer_name,
-        email,
-        phone,
-        address_line1,
-        city,
-        state,
-        zip_code,
-        country,
-        industry,
-        customer_count,
-        segment,
-        customer_status,
-        annual_revenue,
-        effective_date,
-        expiry_date,
-        is_current
+        segmented.customer_key,
+        segmented.customer_id,
+        segmented.customer_name,
+        segmented.email,
+        segmented.phone,
+        segmented.address_line1,
+        segmented.city,
+        segmented.state,
+        segmented.zip_code,
+        segmented.country,
+        segmented.industry,
+        segmented.customer_count,
+        segmented.segment,
+        segmented.customer_status,
+        segmented.annual_revenue,
+        segmented.effective_date,
+        segmented.expiry_date,
+        segmented.is_current,
+        COALESCE(orders.total_orders, 0) AS total_orders
 
     FROM segmented
+    LEFT JOIN orders ON segmented.customer_id = orders.customer_id
 
 )
 
